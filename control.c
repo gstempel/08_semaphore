@@ -12,31 +12,31 @@ int main(int argc, char *argv[]){
   int semid;
   int key = ftok("makefile" , 22);
   int sc;
+  int fd;
   char *file = "ring";
+  char buffer[1000];
 
   if (strncmp(argv[1], "-c", strlen(argv[1])) == 0){
     semid = semget(key, 1, IPC_CREAT | IPC_EXCL | O_APPEND | 0644);
     printf("semaphore created: %d\n", semid);
     union semun su;
     printf("value set: %d\n", sc);
-    /*    su.val = 0;
-    //setting semaphore value
-    sc = semctl(semid, 0, SETVAL, su);
-    printf("value set: %d\n", sc);*/
-    if(open(file, O_CREAT | O_TRUNC | O_WRONLY, 0644) < 0) {
+    fd = open(file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    if(fd < 0) {
       printf("Could not create/open file: %s", strerror(errno));
     }
   }
-
   else if(strncmp(argv[1], "-r", strlen(argv[1])) == 0){
     semid = semget(key, 1, 0);
     //removing a semaphore
     sc = semctl(semid, 0, IPC_RMID);
     printf("semaphore removed: %d\n", sc);
-    char ret [sizeof(file)];
-    fgets(ret, strlen(ret) -1, file);
-    printf("The Story:\n%s", ret);
+    read(fd, &buffer, sizeof(buffer));
+    printf("File contents:\n%s", buffer);
+  }
+  else if (strncmp(argv[1], "-v", strlen(argv[1])) == 0){
+    read(fd, &buffer, sizeof(buffer));
+    printf("File contents:\n%s", buffer);
   }
   return 0;
-
 }
