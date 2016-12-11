@@ -19,27 +19,29 @@ int main(int argc, char *argv[]){
   char buffer[1000];
 
   if (strncmp(argv[1], "-c", strlen(argv[1])) == 0){
-    sd = shmat(shmget(ftok("makefile", 9), 50, IPC_CREAT | 0644),0, 0);
-    semid = semget(key, 1, IPC_CREAT | IPC_EXCL | O_APPEND | 0644);
-    printf("semaphore created: %d\n", semid);
-    union semun su;
-    printf("value set: %d\n", sc);
-    fd = open(file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-    if(fd < 0) {
-      printf("Could not create/open file: %s", strerror(errno));
-    }
+      sd = shmat(shmget(ftok("makefile", 9), 50, IPC_CREAT | 0644),0, 0);
+      semid = semget(key, 1, IPC_CREAT | IPC_EXCL | O_APPEND | 0644);
+      if (semid > 0) { 
+    	printf("semaphore created: %d\n", semid);
+    	union semun su;
+    	printf("value set: %d\n", sc);
+    	fd = open(file, O_CREAT | O_TRUNC | O_WRONLY, 0644);      
+     	if(fd < 0) 
+      	  printf("Could not create/open file: %s", strerror(errno));
+      }
+      else printf("Semaphore already exists!\n");
   }
   else if(strncmp(argv[1], "-r", strlen(argv[1])) == 0){
-    semid = semget(key, 1, 0);
-    //removing a semaphore
-    sc = semctl(semid, 0, IPC_RMID);
-    printf("semaphore removed: %d\n", sc);
-    read(fd, &buffer, sizeof(buffer));
-    printf("File contents:\n%s", buffer);
+      semid = semget(key, 1, 0);
+      //removing a semaphore
+      sc = semctl(semid, 0, IPC_RMID);
+      printf("semaphore removed: %d\n", sc);
+      read(fd, &buffer, sizeof(buffer));
+      printf("File contents:\n%s", buffer);
   }
   else if (strncmp(argv[1], "-v", strlen(argv[1])) == 0){
-    read(fd, &buffer, sizeof(buffer));
-    printf("File contents:\n%s", buffer);
+      read(fd, &buffer, sizeof(buffer));
+      printf("File contents:\n%s", buffer);
   }
   return 0;
 }
