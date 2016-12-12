@@ -8,41 +8,86 @@
 #include <unistd.h>
 #include <string.h>
 
+char *lastLine(char *file, int smkey) {
+  int errno;
+  int f = open(file, O_RDONLY, 0);
+
+  if(f < 0) {
+    printf("Cannot access file: %s", strerror(errno));
+    return NULL;
+  }
+  int semid = shmget(smkey, 0, 0);
+  if(semid < 0) {
+    printf("Cannot access shared memory: %s", strerror(errno));
+    return NULL;
+  }
+
+  int *size = shmat(semid, 0, 0);
+  char *buff = malloc(*size + 1);
+  if(*size) {
+    lseek(f, -1 * *size, SEEK_END);
+    read(f, buff, *size);
+    buff[strcspn(buff, "\n")] = 0;  
+  }
+  return buff;
+}
+
+void getNextLine(char *file, int semkey, int smkey) {
+  int errno;
+
+  int shmid = shmget(smkey, 1, 0);
+  int semid = semget(semkey, 1, 0);
+
+  if (shmid < 0) {
+    printf("Cannot access shared memory: %s\n", strerror(errno));
+    return;
+  }
+  if (semid < 0) {
+    printf("Cannot access semaphore: %s\n", strerror(errno));
+    return;
+  }
+
+  struct sembuf s;
+  s.sem_num = 0;
+  s.sem_flg = SEM_UNDO;
+  s.sem_op = -1;
+  semop(semid, &s, 1);
+
+  //Get input
+  char line[1000];
+  fgets(line, sizeof(line), stdin);
+
+  //Update shared memory
+  int *size = shmat(semid, 0, 0);
+  *size = strlen(line);
+  shmdt(size);
+
+  //Update file
+  int f = open(file, O_WRONLY | O_APPEND, 0);
+
+  if (f < 0) {
+    printf("Cannot access file %s\n", strerror(errno));
+  } 
+  else {
+    write(f, line, *size);
+    close(f);
+  }
+
+  //give back sem
+  s.sem_op = 1;
+  semop(semid, &s, 1);
+}
+
 int main(){
-  int key = ftok("makefile", 9); //key for semaphore
-  int semid;
-  int fd; //file descriptor
-  struct sembuf sb;
-  sb.sem_num = 0;
-  sb.sem_flg = SEM_UNDO;
-  sb.sem_op = -1;
+  int semkey = ftok("makefile", 22);
+  int smkey = ftok("makefile", 21);
+  char *file = "ring";
 
+  char * lastMess =  lastLine(file, smkey);
+  printf("Last Message: %s\n", lastMess);
+  free(lastMess);
 
-  semid = semget( key, 1, 0644);
-  sb.sem_op = 1;
-printf("First Message: %d\n", semid);
-  semop(semid, &sb, 1);
-  fd = open("ring", O_APPEND | O_RDWR | 0644);
-  printf("second Message: %d\n", semid);
-int sd = shmget( key, sizeof(int), 0644 );
-int *size = (int *) shmat( sd, 0, 0 );   //size of last line 
-
-
-
-  lseek(fd, -(*size), SEEK_END);
-  char line[(*size) + 1];   //previous line
-  int rd = read(fd, line, *size); //reading descriptor
-  line[rd] = '\0';
-  printf("Last Message: %s\n", line);
-
-  char next[100];
-  printf("Enter a message: ");
-  fgets(next, sizeof(next), stdin);
-  *size = strlen(next);
-  write(fd, next, *size);
-  close(fd);
-  sb.sem_op = 1;
-  semop(semid, &sb, 1);
-
-  return 0;
+  printf("Enter next message: ");
+  getNextLine(file, semkey, smkey);
+  return 1;
 }

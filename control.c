@@ -65,9 +65,10 @@ int main(int argc, char *argv[]){
   int smkey = ftok("makefile", 21); //key for shared memory
 
   char *file = "ring";
-  if (arg[1] == NULL) {
-    printf("No argument given");
-    exit(1);
+
+  if (argv[1] == NULL) {
+    printf("No argument given\n");
+    return -1;;
   }
   if (strncmp(argv[1], "-c", strlen(argv[1])) == 0) {
     //Create/open file
@@ -75,6 +76,7 @@ int main(int argc, char *argv[]){
     int fd = open(file, O_CREAT | O_TRUNC | O_WRONLY, 0644);      
     if(fd < 0) {
       printf("Could not create/open file: %s", strerror(errno));
+      return 1;
     }
     close(fd);
     //Create shared memory
@@ -83,6 +85,7 @@ int main(int argc, char *argv[]){
       printf("Could not create shared memory: %s\n", strerror(errno));
       return 1;
     }
+    printf("Shared memory created: %d\n", Shm);
     //Create semaphore
     int semid = createSem(semkey, 1);
     if (semid < 0) {
@@ -99,7 +102,7 @@ int main(int argc, char *argv[]){
     }
     else {
       shmctl(Shm, IPC_RMID, 0);
-      printf("Removed shared memory\n");
+      printf("Removed shared memory: %d\n", Shm);
     }
     //Remove semaphore
     int semid = getSem(semkey);
