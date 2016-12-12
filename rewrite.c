@@ -25,7 +25,7 @@ char *lastLine(char *file, int smkey) {
   int *size = shmat(semid, 0, 0);
   char *buff = malloc(*size + 1);
   if(*size) {
-    lseek(f, -1 * *size, SEEK_END);
+    lseek(f, -1, *size, SEEK_END);
     read(f, buff, *size);
     buff[strcspn(buff, "\n")] = 0;  
   }
