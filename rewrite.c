@@ -54,7 +54,9 @@ void getNextLine(char *file, int semkey, int smkey) {
 
   //Get input
   char line[1000];
-  fgets(line, sizeof(line), stdin);
+  fgets(line, 1000, stdin);
+
+  printf("Getting here!");
 
   //Update shared memory
   int *size = shmat(semid, 0, 0);
@@ -86,7 +88,7 @@ int main(){
   char * lastMess =  lastLine(file, smkey);
   printf("Last Message: %s\n", lastMess);
   free(lastMess);
-  printf("Enter next message:");
+  printf("Enter next message: ");
 
   getNextLine(file, semkey, smkey);
   return 1;
