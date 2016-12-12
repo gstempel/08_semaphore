@@ -9,7 +9,7 @@
 #include <string.h>
 
 int main(){
-  int key = ftok("makefile", 9); //key for semaphore
+  int key = ftok("makefile", 22); //key for semaphore
   int semid;
   int *size;
   int fd; //file descriptor
