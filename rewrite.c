@@ -9,20 +9,25 @@
 #include <string.h>
 
 int main(){
-  int key = ftok("makefile", 22); //key for semaphore
+  int key = ftok("makefile", 9); //key for semaphore
   int semid;
-  int *size;
   int fd; //file descriptor
   struct sembuf sb;
   sb.sem_num = 0;
   sb.sem_flg = SEM_UNDO;
   sb.sem_op = -1;
 
-  semid = semget( key, 1, IPC_EXCL | O_APPEND | 0644);
+
+  semid = semget( key, 1, 0644);
   sb.sem_op = 1;
+printf("First Message: %d\n", semid);
   semop(semid, &sb, 1);
   fd = open("ring", O_APPEND | O_RDWR | 0644);
-  size = (int *) shmat( shmget( key, sizeof(int), 0644 ), 0, 0 );   //size of last line 
+  printf("second Message: %d\n", semid);
+int sd = shmget( key, sizeof(int), 0644 );
+int *size = (int *) shmat( sd, 0, 0 );   //size of last line 
+
+
 
   lseek(fd, -(*size), SEEK_END);
   char line[(*size) + 1];   //previous line
