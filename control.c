@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
     if (semid < 0) {
       printf("Could not access semaphore: %s\n", strerror(errno));
     }
-    remSem(semkey);
+    remSem(semid);
     printf("Semaphore removed: %d\n", semid);
     //Print out file contents
     printf("File contents:\n%s", readFile(file));
