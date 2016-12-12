@@ -65,7 +65,10 @@ int main(int argc, char *argv[]){
   int smkey = ftok("makefile", 21); //key for shared memory
 
   char *file = "ring";
-
+  if (arg[1] == NULL) {
+    printf("No argument given");
+    exit(1);
+  }
   if (strncmp(argv[1], "-c", strlen(argv[1])) == 0) {
     //Create/open file
     umask(0000);
