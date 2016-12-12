@@ -51,7 +51,6 @@ void getNextLine(char *file, int semkey, int smkey) {
   s.sem_num = 0;
   s.sem_flg = SEM_UNDO;
   s.sem_op = -1;
-  semop(semid, &s, 1);
 
   //Get input
   char line[1000];
@@ -76,6 +75,7 @@ void getNextLine(char *file, int semkey, int smkey) {
   //give back sem
   s.sem_op = 1;
   semop(semid, &s, 1);
+  printf("GETTING HERE\n");
 }
 
 int main(){
@@ -86,8 +86,8 @@ int main(){
   char * lastMess =  lastLine(file, smkey);
   printf("Last Message: %s\n", lastMess);
   free(lastMess);
+  printf("Enter next message:");
 
-  printf("Enter next message: ");
   getNextLine(file, semkey, smkey);
   return 1;
 }
