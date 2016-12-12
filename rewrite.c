@@ -56,28 +56,26 @@ void getNextLine(char *file, int semkey, int smkey) {
   char line[1000];
   fgets(line, 1000, stdin);
 
-  printf("Getting here!");
-
   //Update shared memory
-  int *size = shmat(semid, 0, 0);
+  int *size = (int *) shmat(shmid, 0, 0);
+  int new = *size;
+  new = strlen(line);
   *size = strlen(line);
   shmdt(size);
 
   //Update file
   int f = open(file, O_WRONLY | O_APPEND, 0);
-
   if (f < 0) {
     printf("Cannot access file %s\n", strerror(errno));
   } 
   else {
-    write(f, line, *size);
+    write(f, line, new);
     close(f);
   }
 
   //give back sem
   s.sem_op = 1;
   semop(semid, &s, 1);
-  printf("GETTING HERE\n");
 }
 
 int main(){
@@ -88,8 +86,9 @@ int main(){
   char * lastMess =  lastLine(file, smkey);
   printf("Last Message: %s\n", lastMess);
   free(lastMess);
-  printf("Enter next message: ");
 
+  printf("Enter next message: ");
   getNextLine(file, semkey, smkey);
+
   return 1;
 }

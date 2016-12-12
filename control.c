@@ -53,7 +53,7 @@ char * readFile(char *file) {
   int fd = open(file, O_RDONLY);
   int size = f.st_size;
   char * buff = (char *) malloc(size + 1);
-  read(fd, buff, sizeof(buff));
+  read(fd, buff, size);
   close(fd);
   return buff;
 }
@@ -70,6 +70,7 @@ int main(int argc, char *argv[]){
     printf("No argument given\n");
     return -1;;
   }
+
   if (strncmp(argv[1], "-c", strlen(argv[1])) == 0) {
     //Create/open file
     umask(0000);
@@ -117,6 +118,11 @@ int main(int argc, char *argv[]){
 
   else if (strncmp(argv[1], "-v", strlen(argv[1])) == 0){
     printf("File contents:\n%s", readFile(file));
+  }
+
+  else {
+    printf("Incorrect argument given\n");
+    return -1;;
   }
 
   return 1;
